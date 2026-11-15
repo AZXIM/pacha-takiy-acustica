@@ -1,6 +1,6 @@
 # Pacha Takiy · Ver, escuchar y sentir la lluvia de Moquegua y El Niño
 
-**Pruébalo aquí:** https://azxim.github.io/pacha-takiy-acustica/
+**Pruébalo aquí:** https://azxim.github.io/pacha-takiy-acustica/ (3D) · [visor de verificación](https://azxim.github.io/pacha-takiy-acustica/visor.html)
 
 Pacha Takiy, del equipo **Ayni Orbital** (Moquegua, Perú), convierte la lluvia medida por los satélites de la NASA en sonido, vibración y texto. Lo hizo para el NASA Space Apps Challenge 2026, reto *The Earth Information Jukebox*. La regla:
 
@@ -8,6 +8,17 @@ Pacha Takiy, del equipo **Ayni Orbital** (Moquegua, Perú), convierte la lluvia 
 - **Rumor de fondo = área con lluvia:** cuanto más fuerte, más área de la zona está lloviendo.
 
 Este repositorio demuestra con mediciones que eso se cumple, lo ubica en el mapa de Moquegua y lo **calibra con El Niño**, que está presente hoy. Todo se puede comprobar viendo, escuchando o sintiendo.
+
+## 🌎 Pacha Takiy 3D
+
+**https://azxim.github.io/pacha-takiy-acustica/**
+
+El **relieve real de Moquegua** (NASA SRTM), desde el océano Pacífico en Ilo hasta la cuenca alta y el volcán Ubinas. Encima cae la **lluvia medida por la NASA** (GPM IMERG), celda por celda, y suena **en tiempo real** con la regla de la app: golpes de 440 Hz para la intensidad y rumor de fondo para el área. En el modo **El Niño**, el mar se calienta según el índice ONI de NOAA y se escuchan 44 temporadas de lluvia de NASA POWER, con una banda andina opcional (quena y bombo).
+
+![Pacha Takiy 3D: El Niño 1997-98 sobre Moquegua](capturas/vista-3d-el-nino.png)
+![Pacha Takiy 3D: la lluvia del 10/02/2025 sobre la cuenca alta](capturas/vista-3d-tarde.png)
+
+El **visor de verificación** accesible está en [visor.html](https://azxim.github.io/pacha-takiy-acustica/visor.html).
 
 ![Demo A/B como se ve en Sonic Visualiser](vista-sonic-visualiser-ab.png)
 
@@ -50,6 +61,14 @@ Detalle: [reportes/el-nino-moquegua.md](reportes/el-nino-moquegua.md) · datos c
 
 Detalle: [reportes/reporte-acustico.md](reportes/reporte-acustico.md).
 
+## Sin instalar nada: Google Colab
+
+[![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AZXIM/pacha-takiy-acustica/blob/main/espectrograma_colab.ipynb)
+
+El cuaderno `espectrograma_colab.ipynb` descarga los audios de este repositorio y muestra el espectrograma con los golpes, los momentos, el rumor y el ONI. Además comprueba solo que cada golpe de la regla está en el audio (189 de 189 en El Niño). En Colab: **Entorno de ejecución → Ejecutar todas**.
+
+También sirve **Audacity** (gratis): **Archivo → Importar → Audio** con un `.wav` y **Archivo → Importar → Etiquetas** con su `*_audacity.txt`. En el menú de la pista elige **Espectrograma**.
+
 ## Sonic Visualiser (doble clic)
 
 Descarga la carpeta [sonic-visualiser](sonic-visualiser/) y haz doble clic en **`ab_demo.sv`** o **`temporadas.sv`**: se abre el audio con el espectrograma, los golpes marcados, las regiones con su valor, la curva del rumor y la **curva del ONI de El Niño**. Las capturas son de Sonic Visualiser 4.5.2 abriendo esas sesiones:
@@ -70,5 +89,6 @@ Cada fórmula y decisión, del píxel al sonido: psicoacústica (Weber–Fechner
 - NOAA CPC: ONI y ENSO Diagnostic Discussion del 12/11/2026.
 - ENFEN: Comunicado Oficial N.° 20-2026.
 - Límites provinciales: INEI, vía juaneladio/peru-geojson.
+- Relieve: NASA SRTM (con GMTED2010 y ETOPO1) vía AWS Terrain Tiles.
 
 **Equipo Ayni Orbital.** Verificación acústica, calibración con El Niño y visor accesible: Dominique Avendaño ([@AZXIM](https://github.com/AZXIM)).
