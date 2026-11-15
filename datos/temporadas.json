@@ -1,0 +1,839 @@
+{
+ "fuentes": {
+  "lluvia": "NASA POWER v2.10, API mensual (MERRA-2), parámetro PRECTOTCORR (mm/día)",
+  "lluvia_consulta": "https://power.larc.nasa.gov/api/temporal/monthly/point?parameters=PRECTOTCORR&community=AG&longitude=-70.9&latitude=-17.1&start=1981&end=2025&format=JSON",
+  "oni": "NOAA Climate Prediction Center, Oceanic Niño Index (ONI), Niño 3.4, ERSSTv5",
+  "oni_consulta": "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt",
+  "fecha_acceso": "2026-11-15",
+  "estado_actual": {
+   "noaa": "El Niño Advisory: El Niño fuerte a muy fuerte probable hasta enero-marzo 2027; Niño 3.4 +2,5 °C y Niño 1+2 +4,4 °C (ENSO Diagnostic Discussion, 12/11/2026).",
+   "enfen": "Alerta de El Niño Costero: magnitud extraordinaria hasta febrero 2027 (Comunicado Oficial ENFEN N.° 20-2026, 13/11/2026)."
+  },
+  "celda": {
+   "oeste": -70.9375,
+   "este": -70.3125,
+   "sur": -17.25,
+   "norte": -16.75
+  },
+  "punto": {
+   "lat": -17.1,
+   "lon": -70.9,
+   "nota": "centro de la zona 1°×1° de la app; celda MERRA-2 de 0,5°×0,625° centrada en -17,0 / -70,625 (elevación media 3851 m: cuenca alta)"
+  }
+ },
+ "temporadas": [
+  {
+   "anio": 1982,
+   "etiqueta": "1981-82",
+   "lluvia": 0.785,
+   "meses": [
+    0.2,
+    0.52,
+    1.15,
+    1.27
+   ],
+   "oni": -0.05,
+   "fase": "Neutro",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1983,
+   "etiqueta": "1982-83",
+   "lluvia": 0.0825,
+   "meses": [
+    0.07,
+    0.15,
+    0.07,
+    0.04
+   ],
+   "oni": 2.14,
+   "fase": "El Niño fuerte",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1984,
+   "etiqueta": "1983-84",
+   "lluvia": 1.4975,
+   "meses": [
+    0.28,
+    1.19,
+    1.4,
+    3.12
+   ],
+   "oni": -0.63,
+   "fase": "La Niña",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 1985,
+   "etiqueta": "1984-85",
+   "lluvia": 0.6775,
+   "meses": [
+    0.37,
+    0.54,
+    1.47,
+    0.33
+   ],
+   "oni": -1.01,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1986,
+   "etiqueta": "1985-86",
+   "lluvia": 0.87,
+   "meses": [
+    0.27,
+    1.12,
+    1.27,
+    0.82
+   ],
+   "oni": -0.4,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 1987,
+   "etiqueta": "1986-87",
+   "lluvia": 0.75,
+   "meses": [
+    0.95,
+    1.57,
+    0.27,
+    0.21
+   ],
+   "oni": 1.18,
+   "fase": "El Niño",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1988,
+   "etiqueta": "1987-88",
+   "lluvia": 0.6475,
+   "meses": [
+    0.08,
+    1.34,
+    0.32,
+    0.85
+   ],
+   "oni": 0.63,
+   "fase": "El Niño",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1989,
+   "etiqueta": "1988-89",
+   "lluvia": 0.8625,
+   "meses": [
+    0.5,
+    0.8,
+    1.6,
+    0.55
+   ],
+   "oni": -1.64,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1990,
+   "etiqueta": "1989-90",
+   "lluvia": 0.3375,
+   "meses": [
+    0.08,
+    0.81,
+    0.16,
+    0.3
+   ],
+   "oni": 0.18,
+   "fase": "Neutro",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1991,
+   "etiqueta": "1990-91",
+   "lluvia": 0.5675,
+   "meses": [
+    0.65,
+    0.83,
+    0.31,
+    0.48
+   ],
+   "oni": 0.35,
+   "fase": "Neutro",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1992,
+   "etiqueta": "1991-92",
+   "lluvia": 0.2125,
+   "meses": [
+    0.11,
+    0.52,
+    0.17,
+    0.05
+   ],
+   "oni": 1.54,
+   "fase": "El Niño fuerte",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1993,
+   "etiqueta": "1992-93",
+   "lluvia": 0.6425,
+   "meses": [
+    0.41,
+    1.17,
+    0.31,
+    0.68
+   ],
+   "oni": 0.13,
+   "fase": "Neutro",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1994,
+   "etiqueta": "1993-94",
+   "lluvia": 0.8575,
+   "meses": [
+    0.56,
+    0.9,
+    1.45,
+    0.52
+   ],
+   "oni": 0.07,
+   "fase": "Neutro",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 1995,
+   "etiqueta": "1994-95",
+   "lluvia": 0.8875,
+   "meses": [
+    0.48,
+    0.75,
+    0.57,
+    1.75
+   ],
+   "oni": 0.88,
+   "fase": "El Niño",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 1996,
+   "etiqueta": "1995-96",
+   "lluvia": 0.6175,
+   "meses": [
+    0.21,
+    1.2,
+    0.66,
+    0.4
+   ],
+   "oni": -0.88,
+   "fase": "La Niña",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1997,
+   "etiqueta": "1996-97",
+   "lluvia": 1.155,
+   "meses": [
+    0.43,
+    1.8,
+    1.25,
+    1.14
+   ],
+   "oni": -0.41,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 1998,
+   "etiqueta": "1997-98",
+   "lluvia": 0.5925,
+   "meses": [
+    0.51,
+    1.08,
+    0.51,
+    0.27
+   ],
+   "oni": 2.22,
+   "fase": "El Niño fuerte",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 1999,
+   "etiqueta": "1998-99",
+   "lluvia": 0.6775,
+   "meses": [
+    0.08,
+    0.4,
+    1.43,
+    0.8
+   ],
+   "oni": -1.51,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2000,
+   "etiqueta": "1999-00",
+   "lluvia": 1.3575,
+   "meses": [
+    0.27,
+    2.86,
+    1.62,
+    0.68
+   ],
+   "oni": -1.47,
+   "fase": "La Niña",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2001,
+   "etiqueta": "2000-01",
+   "lluvia": 1.16,
+   "meses": [
+    0.25,
+    1.39,
+    1.59,
+    1.41
+   ],
+   "oni": -0.76,
+   "fase": "La Niña",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2002,
+   "etiqueta": "2001-02",
+   "lluvia": 1.2875,
+   "meses": [
+    0.33,
+    0.6,
+    2.86,
+    1.36
+   ],
+   "oni": -0.15,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2003,
+   "etiqueta": "2002-03",
+   "lluvia": 0.8225,
+   "meses": [
+    0.52,
+    0.99,
+    1.0,
+    0.78
+   ],
+   "oni": 0.9,
+   "fase": "El Niño",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2004,
+   "etiqueta": "2003-04",
+   "lluvia": 0.9475,
+   "meses": [
+    0.38,
+    1.87,
+    1.11,
+    0.43
+   ],
+   "oni": 0.34,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2005,
+   "etiqueta": "2004-05",
+   "lluvia": 0.84,
+   "meses": [
+    0.61,
+    0.5,
+    1.76,
+    0.49
+   ],
+   "oni": 0.62,
+   "fase": "El Niño",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2006,
+   "etiqueta": "2005-06",
+   "lluvia": 1.2825,
+   "meses": [
+    0.88,
+    1.93,
+    1.22,
+    1.1
+   ],
+   "oni": -0.86,
+   "fase": "La Niña",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2007,
+   "etiqueta": "2006-07",
+   "lluvia": 0.52,
+   "meses": [
+    0.29,
+    0.56,
+    0.6,
+    0.63
+   ],
+   "oni": 0.62,
+   "fase": "El Niño",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2008,
+   "etiqueta": "2007-08",
+   "lluvia": 0.835,
+   "meses": [
+    0.31,
+    2.35,
+    0.62,
+    0.06
+   ],
+   "oni": -1.76,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2009,
+   "etiqueta": "2008-09",
+   "lluvia": 0.4925,
+   "meses": [
+    0.58,
+    0.09,
+    0.95,
+    0.35
+   ],
+   "oni": -0.89,
+   "fase": "La Niña",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2010,
+   "etiqueta": "2009-10",
+   "lluvia": 0.3875,
+   "meses": [
+    0.49,
+    0.41,
+    0.55,
+    0.1
+   ],
+   "oni": 1.47,
+   "fase": "El Niño",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2011,
+   "etiqueta": "2010-11",
+   "lluvia": 0.7625,
+   "meses": [
+    0.43,
+    0.41,
+    1.77,
+    0.44
+   ],
+   "oni": -1.29,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2012,
+   "etiqueta": "2011-12",
+   "lluvia": 1.12,
+   "meses": [
+    0.48,
+    1.48,
+    1.9,
+    0.62
+   ],
+   "oni": -0.71,
+   "fase": "La Niña",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2013,
+   "etiqueta": "2012-13",
+   "lluvia": 0.84,
+   "meses": [
+    0.61,
+    0.84,
+    1.29,
+    0.62
+   ],
+   "oni": -0.24,
+   "fase": "Neutro",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2014,
+   "etiqueta": "2013-14",
+   "lluvia": 0.5075,
+   "meses": [
+    0.7,
+    0.79,
+    0.23,
+    0.31
+   ],
+   "oni": -0.24,
+   "fase": "Neutro",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2015,
+   "etiqueta": "2014-15",
+   "lluvia": 0.8475,
+   "meses": [
+    0.35,
+    0.65,
+    1.17,
+    1.22
+   ],
+   "oni": 0.73,
+   "fase": "El Niño",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2016,
+   "etiqueta": "2015-16",
+   "lluvia": 0.6025,
+   "meses": [
+    0.43,
+    0.35,
+    1.41,
+    0.22
+   ],
+   "oni": 2.5,
+   "fase": "El Niño fuerte",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2017,
+   "etiqueta": "2016-17",
+   "lluvia": 0.9175,
+   "meses": [
+    0.17,
+    1.55,
+    1.05,
+    0.9
+   ],
+   "oni": -0.08,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2018,
+   "etiqueta": "2017-18",
+   "lluvia": 0.6725,
+   "meses": [
+    0.55,
+    0.55,
+    0.8,
+    0.79
+   ],
+   "oni": -0.71,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2019,
+   "etiqueta": "2018-19",
+   "lluvia": 0.5825,
+   "meses": [
+    0.52,
+    0.56,
+    0.93,
+    0.32
+   ],
+   "oni": 0.99,
+   "fase": "El Niño",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2020,
+   "etiqueta": "2019-20",
+   "lluvia": 1.065,
+   "meses": [
+    0.3,
+    1.0,
+    1.82,
+    1.14
+   ],
+   "oni": 0.71,
+   "fase": "El Niño",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  },
+  {
+   "anio": 2021,
+   "etiqueta": "2020-21",
+   "lluvia": 0.71,
+   "meses": [
+    1.72,
+    0.72,
+    0.07,
+    0.33
+   ],
+   "oni": -0.99,
+   "fase": "La Niña",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2022,
+   "etiqueta": "2021-22",
+   "lluvia": 0.4525,
+   "meses": [
+    0.31,
+    0.4,
+    0.48,
+    0.62
+   ],
+   "oni": -0.76,
+   "fase": "La Niña",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2023,
+   "etiqueta": "2022-23",
+   "lluvia": 0.3775,
+   "meses": [
+    0.25,
+    0.44,
+    0.51,
+    0.31
+   ],
+   "oni": -0.55,
+   "fase": "La Niña",
+   "categoria": 0,
+   "categoria_nombre": "bajo lo normal"
+  },
+  {
+   "anio": 2024,
+   "etiqueta": "2023-24",
+   "lluvia": 0.7375,
+   "meses": [
+    1.11,
+    0.47,
+    0.81,
+    0.56
+   ],
+   "oni": 1.84,
+   "fase": "El Niño fuerte",
+   "categoria": 1,
+   "categoria_nombre": "normal"
+  },
+  {
+   "anio": 2025,
+   "etiqueta": "2024-25",
+   "lluvia": 1.14,
+   "meses": [
+    0.07,
+    1.66,
+    1.53,
+    1.3
+   ],
+   "oni": -0.46,
+   "fase": "Neutro",
+   "categoria": 2,
+   "categoria_nombre": "sobre lo normal"
+  }
+ ],
+ "terciles_mm_dia": [
+  0.634,
+  0.867
+ ],
+ "normal": [
+  1991,
+  2020
+ ],
+ "pearson_r": -0.4,
+ "spearman_rho": -0.31,
+ "p_permutacion": 0.0064,
+ "regresion": {
+  "a": 0.7765,
+  "b": -0.1129,
+  "error_estandar": 0.2818
+ },
+ "validacion_cruzada": {
+  "aciertos": 16,
+  "n": 44,
+  "porcentaje": 36.4,
+  "heidke": 0.011,
+  "tabla": [
+   [
+    5,
+    6,
+    3
+   ],
+   [
+    1,
+    10,
+    6
+   ],
+   [
+    0,
+    12,
+    1
+   ]
+  ]
+ },
+ "senal_el_nino_fuerte": {
+  "n": 5,
+  "bajo_lo_normal": 4,
+  "aciertos_loo": 4,
+  "porcentaje_loo": 80.0,
+  "p_azar": 0.0453
+ },
+ "compuestos": {
+  "El Niño fuerte": {
+   "n": 5,
+   "lluvia_media": 0.446,
+   "por_categoria": [
+    4,
+    1,
+    0
+   ],
+   "temporadas": [
+    "1982-83",
+    "1991-92",
+    "1997-98",
+    "2015-16",
+    "2023-24"
+   ]
+  },
+  "El Niño": {
+   "n": 15,
+   "lluvia_media": 0.639,
+   "por_categoria": [
+    7,
+    6,
+    2
+   ],
+   "temporadas": [
+    "1982-83",
+    "1986-87",
+    "1987-88",
+    "1991-92",
+    "1994-95",
+    "1997-98",
+    "2002-03",
+    "2004-05",
+    "2006-07",
+    "2009-10",
+    "2014-15",
+    "2015-16",
+    "2018-19",
+    "2019-20",
+    "2023-24"
+   ]
+  },
+  "Neutro": {
+   "n": 13,
+   "lluvia_media": 0.835,
+   "por_categoria": [
+    3,
+    4,
+    6
+   ],
+   "temporadas": [
+    "1981-82",
+    "1985-86",
+    "1989-90",
+    "1990-91",
+    "1992-93",
+    "1993-94",
+    "1996-97",
+    "2001-02",
+    "2003-04",
+    "2012-13",
+    "2013-14",
+    "2016-17",
+    "2024-25"
+   ]
+  },
+  "La Niña": {
+   "n": 16,
+   "lluvia_media": 0.847,
+   "por_categoria": [
+    4,
+    7,
+    5
+   ],
+   "temporadas": [
+    "1983-84",
+    "1984-85",
+    "1988-89",
+    "1995-96",
+    "1998-99",
+    "1999-00",
+    "2000-01",
+    "2005-06",
+    "2007-08",
+    "2008-09",
+    "2010-11",
+    "2011-12",
+    "2017-18",
+    "2020-21",
+    "2021-22",
+    "2022-23"
+   ]
+  }
+ },
+ "proxima_temporada": {
+  "etiqueta": "2026-27",
+  "oni_usado": 2.46,
+  "oni_estacion": "ASO 2026",
+  "lluvia_esperada": 0.499,
+  "intervalo_90": [
+   0.0,
+   1.005
+  ],
+  "categoria_esperada": "bajo lo normal",
+  "historia_el_nino_fuerte": "4 de 5 temporadas con El Niño fuerte fueron bajo lo normal; 0 sobre lo normal."
+ }
+}
