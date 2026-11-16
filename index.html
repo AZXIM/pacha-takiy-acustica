@@ -137,7 +137,7 @@ kbd{font-family:inherit;border:1px solid var(--borde);border-bottom-width:3px;bo
   </section>
   <section class="tarjeta" aria-labelledby="tMas">
     <h2 id="tMas">Más</h2>
-    <p><a id="enlaceVisor" href="../acustica/index.html">Visor de verificación accesible</a> · <a id="enlaceFund" href="https://github.com/AZXIM/pacha-takiy-acustica/blob/main/FUNDAMENTO-MATEMATICO.md">Fundamento matemático</a> · Datos: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Equipo Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox.</p>
+    <p><a href="https://pacha-takiy.vercel.app/"><b>App principal del equipo: Pacha Takiy en 5 pasos</b></a> · <a id="enlaceVisor" href="../acustica/index.html">Visor de verificación accesible</a> · <a id="enlaceFund" href="https://github.com/AZXIM/pacha-takiy-acustica/blob/main/FUNDAMENTO-MATEMATICO.md">Fundamento matemático</a> · Datos: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Equipo Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox.</p>
   </section>
 </div>
 
@@ -221,7 +221,7 @@ function aplicarIdioma() {
   set("#tMas", "More");
   const mas = document.querySelector("#tMas + p");
   const visor = $("enlaceVisor").getAttribute("href"), fund = $("enlaceFund").getAttribute("href");
-  mas.innerHTML = `<a id="enlaceVisor" href="${visor}">Accessible verification viewer (Spanish)</a> · <a id="enlaceFund" href="${fund}">Mathematical foundation (Spanish)</a> · Data: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Team Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox. Developed with help from Claude (Anthropic), an SI coding assistant.`;
+  mas.innerHTML = `<a href="https://pacha-takiy.vercel.app/"><b>Main team app: Pacha Takiy in 5 guided steps</b></a> · <a id="enlaceVisor" href="${visor}">Accessible verification viewer (Spanish)</a> · <a id="enlaceFund" href="${fund}">Mathematical foundation (Spanish)</a> · Data: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Team Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox. Developed with help from SI coding assistants (Claude by Anthropic, ChatGPT by OpenAI).`;
   set("#tfSalir", "Exit");
   set("#tfH", "Slide your finger from left to right to move through time. Each tone vibrates. Pulses close together: a lot of rain. Pulses far apart: little rain. Double tap to listen or pause.");
 }
