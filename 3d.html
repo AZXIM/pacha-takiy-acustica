@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pacha Takiy 3D</title>
+<meta name="description" content="La lluvia de la NASA sobre el relieve real de Moquegua, en 3D, con sonido en tiempo real, vibración y El Niño.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 13 6 5l3 4 2-3 4 7z' fill='%23e5a940'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Pacha Takiy 3D: noche andina. El relieve es el protagonista; la interfaz va en tarjetas translúcidas
+   sobre la escena. Ocre = tierra y golpes, turquesa = agua, el mar cambia de color con El Niño. */
+:root{
+  --noche:#070d13; --vidrio:rgba(10,18,26,.78); --borde:rgba(255,255,255,.14);
+  --tinta:#f1f4f6; --sutil:#b3c0c9; --ocre:#e5a940; --agua:#4cc3b9; --nino:#e4572e; --foco:#8fb4ff;
+  --f:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --fd:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--noche);color:var(--tinta);font-family:var(--f);font-size:17px;line-height:1.45}
+:focus-visible{outline:3px solid var(--foco);outline-offset:3px;border-radius:6px}
+.saltar{position:absolute;left:-999px;top:8px;background:#fff;color:#000;padding:8px 14px;border-radius:8px;z-index:20}
+.saltar:focus{left:8px}
+.escena{position:relative;height:min(78vh,820px);min-height:520px;overflow:hidden;background:radial-gradient(ellipse at 50% 20%,#14324a 0%,#070d13 70%)}
+#lienzo{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#lienzo:active{cursor:grabbing}
+.etq{position:absolute;transform:translate(-50%,-120%);font:700 13px var(--f);color:#fff;text-shadow:0 1px 3px #000,0 0 8px #000;white-space:nowrap;pointer-events:none}
+.etq.mar{font-weight:400;font-style:italic;color:#cfe8ff}
+.panel{position:absolute;background:var(--vidrio);border:1px solid var(--borde);border-radius:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.mando{left:16px;top:16px;width:min(380px,calc(100% - 32px));padding:16px;display:grid;gap:12px}
+h1{font-family:var(--fd);font-weight:800;font-size:1.9rem;line-height:1;margin:0}
+h1 small{display:block;font-family:var(--f);font-weight:400;font-size:.92rem;color:var(--sutil);margin-top:6px;line-height:1.35}
+.modos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+button{font:inherit;color:var(--tinta);background:rgba(255,255,255,.06);border:1px solid var(--borde);border-radius:10px;padding:9px 10px;min-height:44px;cursor:pointer}
+button:hover{border-color:rgba(255,255,255,.4)}
+button[aria-pressed="true"]{background:var(--ocre);color:#1a1205;border-color:var(--ocre);font-weight:700}
+.principal{background:var(--ocre);color:#1a1205;border-color:var(--ocre);font-weight:700;font-size:1.05rem}
+.fila{display:flex;gap:6px;flex-wrap:wrap}
+.fila button{flex:1}
+.ahora{right:16px;top:16px;width:min(340px,calc(100% - 32px));padding:14px 16px;display:grid;gap:6px}
+.cuando{font-family:var(--fd);font-weight:800;font-size:1.6rem;line-height:1.05}
+.dato{font-size:.95rem;color:var(--sutil)}
+.dato b{color:var(--tinta)}
+.puntos{display:flex;gap:6px;min-height:24px}
+.punto{width:20px;height:20px;border-radius:50%;border:2px solid var(--ocre)}
+.punto.lleno{background:var(--ocre)}
+.subt{left:50%;bottom:86px;transform:translateX(-50%);padding:10px 18px;font-size:1.2rem;font-weight:700;max-width:min(820px,calc(100% - 32px));text-align:center}
+.subt[hidden]{display:none}
+#linea{position:absolute;left:16px;right:16px;bottom:14px;height:62px;width:calc(100% - 32px);border-radius:12px;background:var(--vidrio);border:1px solid var(--borde);cursor:pointer}
+.debajo{max-width:1100px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:18px}
+.tarjeta{background:#0f1820;border:1px solid #22313c;border-radius:14px;padding:16px}
+h2{font-family:var(--fd);font-size:1.25rem;margin:0 0 8px}
+p{margin:0;max-width:72ch}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.check{display:flex;gap:8px;align-items:center}
+.check input{width:20px;height:20px;accent-color:var(--ocre)}
+a{color:var(--agua)}
+kbd{font-family:inherit;border:1px solid var(--borde);border-bottom-width:3px;border-radius:6px;padding:0 6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#tf{position:fixed;inset:0;background:#000;z-index:40;display:none;flex-direction:column;color:#fff}
+#tf[data-abierto="true"]{display:flex}
+#tf .barra{display:flex;justify-content:space-between;padding:14px;gap:10px}
+#tf button{background:#fff;color:#000;font-weight:700;font-size:1.2rem;min-height:60px;padding:10px 22px}
+#tfZona{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;touch-action:none;user-select:none}
+#tfZona .g{font-family:var(--fd);font-size:clamp(2.4rem,9vw,5rem);font-weight:800;line-height:1.05}
+#tfZona .m{font-size:clamp(1.2rem,3.6vw,1.9rem);margin-top:10px;max-width:30ch}
+#tfZona .h{opacity:.8;margin-top:22px;max-width:38ch}
+@media (max-width:820px){
+  .escena{height:auto;min-height:0;display:flex;flex-direction:column}
+  #lienzo{position:relative;height:56vh}
+  .panel{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none;width:auto;margin:8px 12px}
+  .subt{margin:8px 12px}
+  #linea{position:relative;left:auto;bottom:auto;width:calc(100% - 24px);margin:8px 12px}
+  .etq{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<a class="saltar" href="#mandos">Saltar a los controles</a>
+<div class="escena">
+  <canvas id="lienzo" role="img" aria-label="Relieve 3D de Moquegua, desde el océano Pacífico en Ilo hasta la cuenca alta en Carumas y el volcán Ubinas. La lluvia medida por la NASA cae sobre las celdas donde llovió. Arrastra para girar y usa la rueda para acercar."></canvas>
+  <div id="etiquetas" aria-hidden="true"></div>
+
+  <section class="panel mando" id="mandos" aria-labelledby="titulo">
+    <h1 id="titulo">Pacha Takiy 3D<small>La lluvia de la NASA sobre el relieve real de Moquegua. Suena en tiempo real, vibra y cambia con El Niño.</small></h1>
+    <div class="modos" role="group" aria-label="Qué escuchar">
+      <button data-modo="tarde" aria-pressed="true">La tarde</button>
+      <button data-modo="ab" aria-pressed="false">A y B</button>
+      <button data-modo="nino" aria-pressed="false">El Niño</button>
+    </div>
+    <button class="principal" id="btnPlay" aria-keyshortcuts="Space">▶ Escuchar</button>
+    <div class="fila">
+      <button id="btnAnt" aria-keyshortcuts="ArrowLeft">⏮ Anterior</button>
+      <button id="btnSig" aria-keyshortcuts="ArrowRight">Siguiente ⏭</button>
+      <button id="btnTF" aria-keyshortcuts="T">Touch &amp; Feel</button>
+    </div>
+    <div class="fila">
+      <button id="btnVibra" aria-pressed="true" aria-keyshortcuts="V">Vibración</button>
+      <button id="btnBanda" aria-pressed="false" aria-keyshortcuts="B">Banda andina</button>
+      <button id="btnSubt" aria-pressed="true">Subtítulos</button>
+      <button id="btnIdioma">Español</button>
+    </div>
+  </section>
+
+  <section class="panel ahora" aria-labelledby="cuando">
+    <div class="cuando" id="cuando">—</div>
+    <div class="puntos" id="puntos" aria-hidden="true"></div>
+    <div class="dato" id="dato1"></div>
+    <div class="dato" id="dato2"></div>
+    <p class="dato" id="donde"></p>
+  </section>
+
+  <div class="panel subt" id="subt" aria-hidden="true">Pulsa Escuchar.</div>
+  <canvas id="linea" aria-label="Línea de tiempo. Toca para ir a un momento." role="img"></canvas>
+</div>
+
+<div class="debajo">
+  <section class="tarjeta" aria-labelledby="tQue">
+    <h2 id="tQue">Qué estás viendo y oyendo</h2>
+    <div class="rejilla">
+      <p><b>El relieve es real.</b> Viene de NASA SRTM vía AWS Terrain Tiles (~600 m) y está exagerado 4 veces en altura. A la izquierda el océano Pacífico y Ilo; al centro el valle de Moquegua y Torata; arriba a la derecha la cuenca alta (Cuajone, Carumas) y el volcán Ubinas.</p>
+      <p><b>La tarde y A/B:</b> la lluvia del 10/02/2025 (NASA GPM IMERG, celdas de 0,1°). Cada golpe de 440 Hz es la intensidad (2, 4 o 7) y el rumor de fondo, el área con lluvia. Son las reglas del equipo, sonando en tiempo real.</p>
+      <p><b>El Niño:</b> 44 temporadas de lluvia de NASA POWER en la cuenca alta. El mar se calienta (rojo) según el índice ONI de NOAA y la lluvia sobre la celda crece con la temporada. Los golpes dicen el tercil: 2 bajo lo normal, 4 normal, 7 sobre lo normal.</p>
+    </div>
+  </section>
+  <section class="tarjeta" aria-labelledby="tAcc">
+    <h2 id="tAcc">Para todas las personas</h2>
+    <div class="rejilla">
+      <p><b>Sordas:</b> subtítulos, puntos que se llenan con cada golpe (sin destellos) y lluvia visible en el mapa 3D.</p>
+      <p><b>Ciegas:</b> todo con teclado (<kbd>Espacio</kbd>, <kbd>←</kbd> <kbd>→</kbd>, <kbd>1</kbd>–<kbd>3</kbd>, <kbd>D</kbd> describir); el lector de pantalla describe cada momento al pausar o cambiar.</p>
+      <p><b>Sordociegas:</b> vibración en cada golpe y el modo <b>Touch &amp; Feel</b>: deslizas el dedo por el tiempo y sientes la lluvia, más pulsos seguidos = más lluvia.</p>
+    </div>
+  </section>
+  <section class="tarjeta" aria-labelledby="tMas">
+    <h2 id="tMas">Más</h2>
+    <p><a href="https://pacha-takiy.vercel.app/"><b>App principal del equipo: Pacha Takiy en 5 pasos</b></a> · <a id="enlaceVisor" href="../acustica/index.html">Visor de verificación accesible</a> · <a id="enlaceFund" href="https://github.com/AZXIM/pacha-takiy-acustica/blob/main/FUNDAMENTO-MATEMATICO.md">Fundamento matemático</a> · Datos: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Equipo Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox.</p>
+  </section>
+</div>
+
+<div id="tf" role="dialog" aria-modal="true" aria-labelledby="tfG" data-abierto="false">
+  <div class="barra"><button id="tfPlay">▶ Escuchar</button><button id="tfSalir">Salir</button></div>
+  <div id="tfZona" tabindex="0" role="application" aria-describedby="tfH">
+    <div class="g" id="tfG">—</div><div class="m" id="tfM"></div>
+    <div class="h" id="tfH">Desliza el dedo de izquierda a derecha para recorrer el tiempo. Cada golpe vibra. Pulsos seguidos: mucha lluvia. Pulsos sueltos: poca. Doble toque para escuchar o pausar.</div>
+  </div>
+</div>
+<div class="sr" aria-live="polite" id="voz"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const num = (v, d = 1) => v == null ? "—" : (LANG === "es" ? Number(v).toFixed(d).replace(".", ",") : Number(v).toFixed(d));
+const pct = (c) => `${num(c * 100, 1)} %`;
+const reducir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const puedeVibrar = typeof navigator.vibrate === "function";
+const S = { modo: "tarde", i: 0, tocando: false, vibra: true, banda: false, subt: true, datos: null, dem: null, timer: null, golpeT: [] };
+
+/* ---------------- Language: English by default, Spanish on request ---------------- */
+const LANG = (() => {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q === "es" || q === "en") return q;
+  try { const g = localStorage.getItem("pachaLang"); if (g === "es" || g === "en") return g; } catch (e) { /* no storage */ }
+  return "en";
+})();
+const EN = LANG === "en";
+const tr = (es, en) => EN ? en : es;
+const TX = { "baja": "light", "media": "moderate", "alta": "heavy", "bajo lo normal": "below normal", "normal": "normal",
+  "sobre lo normal": "above normal", "El Niño fuerte": "Strong El Niño", "El Niño": "El Niño", "Neutro": "Neutral",
+  "La Niña": "La Niña", "El Niño muy fuerte (hoy)": "Very strong El Niño (today)" };
+const x = (v) => (EN && v != null && TX[v] != null) ? TX[v] : v;
+const DIR = { norte: "north", sur: "south", este: "east", oeste: "west", noreste: "northeast", noroeste: "northwest", sureste: "southeast", suroeste: "southwest", centro: "center" };
+function geoTxt(t) {
+  if (!t) return "";
+  if (!EN) return t;
+  if (t.startsWith("No llueve")) return "No rain in any cell of the area.";
+  const r = t.match(/Llueve en (\d+) de (\d+) celdas; la lluvia se concentra al (\w+) de la zona(?: \((cuenca alta, hacia Carumas|hacia la costa)\))?\./);
+  if (!r) return t;
+  const ex = r[4] ? (r[4].startsWith("cuenca") ? " (upper basin, toward Carumas)" : " (toward the coast)") : "";
+  return `Rain in ${r[1]} of ${r[2]} cells; it concentrates in the ${DIR[r[3]] || r[3]} of the area${ex}.`;
+}
+const etq = (v) => EN ? String(v).replace(" (esperado)", " (expected)") : v;
+const LUGAR = { "Volcán Ubinas": "Ubinas volcano", "Océano Pacífico": "Pacific Ocean", "Cuenca alta": "Upper basin" };
+const lugar = (n) => EN ? (LUGAR[n] || n) : n;
+function aplicarIdioma() {
+  document.documentElement.lang = LANG;
+  $("btnIdioma").textContent = EN ? "Español" : "English";
+  $("btnIdioma").setAttribute("lang", EN ? "es" : "en");
+  $("btnIdioma").setAttribute("aria-label", EN ? "Ver en español" : "View in English");
+  actualizarBotones();
+  if (!EN) return;
+  document.title = "Pacha Takiy 3D · Hear NASA rain in the Andes";
+  const set = (sel, html) => { const el = document.querySelector(sel); if (el) el.innerHTML = html; };
+  const attr = (sel, a, v) => { const el = document.querySelector(sel); if (el) el.setAttribute(a, v); };
+  document.querySelector('meta[name="description"]').setAttribute("content", "NASA rain over the real relief of Moquegua, Peru, in 3D, with real-time sound, vibration and El Niño.");
+  set(".saltar", "Skip to the controls");
+  attr("#lienzo", "aria-label", "3D relief of Moquegua, Peru, from the Pacific Ocean at Ilo to the upper basin at Carumas and the Ubinas volcano. Rain measured by NASA falls on the cells where it rained. Drag to rotate and use the wheel to zoom.");
+  set("#titulo", "Pacha Takiy 3D<small>NASA rain over the real relief of Moquegua, Peru. It sounds in real time, vibrates and changes with El Niño.</small>");
+  attr(".modos", "aria-label", "What to listen to");
+  set('[data-modo="tarde"]', "The afternoon"); set('[data-modo="ab"]', "A and B"); set('[data-modo="nino"]', "El Niño");
+  set("#btnAnt", "⏮ Previous"); set("#btnSig", "Next ⏭");
+  set("#btnVibra", "Vibration"); set("#btnBanda", "Andean band"); set("#btnSubt", "Captions");
+  set("#subt", "Press Listen.");
+  attr("#linea", "aria-label", "Timeline. Tap to go to a moment.");
+  set("#tQue", "What you are seeing and hearing");
+  const q = document.querySelectorAll("#tQue + .rejilla p");
+  q[0].innerHTML = "<b>The relief is real.</b> It comes from NASA SRTM via AWS Terrain Tiles (~600 m) and is exaggerated 4 times in height. On the left, the Pacific Ocean and Ilo; in the center, the Moquegua valley and Torata; top right, the upper basin (Cuajone, Carumas) and the Ubinas volcano.";
+  q[1].innerHTML = "<b>The afternoon and A/B:</b> rain on 10 Feb 2025 (NASA GPM IMERG, 0.1° cells). Each 440 Hz tone is the intensity (2, 4 or 7 tones) and the background rumble is the area with rain. These are the team's rules, sounding in real time.";
+  q[2].innerHTML = "<b>El Niño:</b> 44 rainy seasons from NASA POWER in the upper basin. The sea warms up (red) following NOAA's ONI index and the rain over the cell grows with the season. The tones give the tercile: 2 below normal, 4 normal, 7 above normal.";
+  set("#tAcc", "For everyone");
+  const a = document.querySelectorAll("#tAcc + .rejilla p");
+  a[0].innerHTML = "<b>Deaf:</b> captions, dots that fill with each tone (no flashes) and rain visible on the 3D map.";
+  a[1].innerHTML = "<b>Blind:</b> everything works with the keyboard (<kbd>Space</kbd>, <kbd>←</kbd> <kbd>→</kbd>, <kbd>1</kbd>–<kbd>3</kbd>, <kbd>D</kbd> describe); the screen reader describes each moment when you pause or change.";
+  a[2].innerHTML = "<b>Deafblind:</b> vibration on every tone and the <b>Touch &amp; Feel</b> mode: slide your finger through time and feel the rain; more pulses in a row = more rain.";
+  set("#tMas", "More");
+  const mas = document.querySelector("#tMas + p");
+  const visor = $("enlaceVisor").getAttribute("href"), fund = $("enlaceFund").getAttribute("href");
+  mas.innerHTML = `<a href="https://pacha-takiy.vercel.app/"><b>Main team app: Pacha Takiy in 5 guided steps</b></a> · <a id="enlaceVisor" href="${visor}">Accessible verification viewer (Spanish)</a> · <a id="enlaceFund" href="${fund}">Mathematical foundation (Spanish)</a> · Data: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Team Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox. Developed with help from SI coding assistants (Claude by Anthropic, ChatGPT by OpenAI).`;
+  set("#tfSalir", "Exit");
+  set("#tfH", "Slide your finger from left to right to move through time. Each tone vibrates. Pulses close together: a lot of rain. Pulses far apart: little rain. Double tap to listen or pause.");
+}
+$("btnIdioma").onclick = () => {
+  const nuevo = EN ? "es" : "en";
+  try { localStorage.setItem("pachaLang", nuevo); } catch (e) { /* no storage */ }
+  const u = new URL(location.href); u.searchParams.set("lang", nuevo); location.href = u.toString();
+};
+aplicarIdioma();
+
+function decir(t) { const v = $("voz"); v.textContent = ""; setTimeout(() => { v.textContent = t; }, 40); }
+function vibrar(p) { if (S.vibra && puedeVibrar) try { navigator.vibrate(p); S.vibro = true; } catch (e) { /* sin vibración */ } }
+
+/* ---------------- Datos ---------------- */
+async function json(rutas) { for (const r of rutas) { try { const x = await fetch(r); if (x.ok) return await x.json(); } catch (e) { /* siguiente ruta */ } } throw new Error("sin datos"); }
+async function cargar() {
+  const enRepo = location.pathname.includes("/3d/");
+  S.datos = await json(enRepo ? ["../acustica/datos.json", "datos.json"] : ["datos.json", "../acustica/datos.json"]);
+  const e = await json(["elevacion.json", "../../datos/mapa/elevacion_moquegua.json"]);
+  const bin = atob(e.int16_le_base64), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  S.dem = { ...e, z: new Int16Array(u8.buffer) };
+  if (!enRepo) $("enlaceVisor").href = "visor.html";
+}
+function pistas() {
+  const p = (id) => S.datos.pistas.find((x) => x.id === id);
+  return { tarde: p("tarde").momentos, ab: p("ab_demo").momentos, nino: p("temporadas").momentos };
+}
+
+/* ---------------- Geografía: lat/lon → escena (1 unidad = 10 km; altura ×4) ---------------- */
+const LON0 = -70.75, LAT0 = -16.925, KX = 111.32 * Math.cos(LAT0 * Math.PI / 180) / 10, KZ = 110.57 / 10, EXAG = 4;
+const X = (lon) => (lon - LON0) * KX, Z = (lat) => -(lat - LAT0) * KZ;
+function elev(lat, lon) {
+  const d = S.dem, r = d.region, p = r.paso;
+  const fi = clamp((r.norte - lat) / p, 0, d.filas - 1.001), ci = clamp((lon - r.oeste) / p, 0, d.columnas - 1.001);
+  const f0 = Math.floor(fi), c0 = Math.floor(ci), df = fi - f0, dc = ci - c0, v = (f, c) => d.z[f * d.columnas + c];
+  return v(f0, c0) * (1 - df) * (1 - dc) + v(f0, c0 + 1) * (1 - df) * dc + v(f0 + 1, c0) * df * (1 - dc) + v(f0 + 1, c0 + 1) * df * dc;
+}
+const Y = (m) => Math.max(m, -60) / 10000 * EXAG;
+
+/* ---------------- Escena 3D ---------------- */
+let renderer, scene, camera, mar, lluvia, nubes, anillos = [], etiquetas = [];
+const cam = { r: 26, th: -0.55, ph: 0.92, tx: 0, tz: 0, auto: !reducir };
+function colorAltura(m) {
+  const t = [[-500, [18, 52, 70]], [0, [205, 190, 160]], [400, [226, 200, 150]], [1500, [214, 156, 96]], [2600, [160, 108, 72]], [3600, [128, 112, 82]], [4400, [118, 120, 96]], [5000, [150, 146, 140]], [5600, [240, 240, 236]]];
+  for (let k = 1; k < t.length; k++) if (m <= t[k][0]) { const f = (m - t[k - 1][0]) / (t[k][0] - t[k - 1][0]); return t[k - 1][1].map((a, j) => (a + (t[k][1][j] - a) * clamp(f)) / 255); }
+  return t[t.length - 1][1].map((a) => a / 255);
+}
+function iniciar3D() {
+  const cv = $("lienzo");
+  try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { return false; }
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x070d13, 30, 70);
+  camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
+  scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x2a1d10, 0.55));
+  const sol = new THREE.DirectionalLight(0xfff1dc, 1.05); sol.position.set(-12, 14, -6); scene.add(sol);
+  // Terreno
+  const d = S.dem, r = d.region, C = d.columnas, F = d.filas;
+  const pos = new Float32Array(C * F * 3), col = new Float32Array(C * F * 3), idx = [];
+  for (let f = 0; f < F; f++) for (let c = 0; c < C; c++) {
+    const k = f * C + c, lat = r.norte - f * r.paso, lon = r.oeste + c * r.paso, m = d.z[k];
+    pos[k * 3] = X(lon); pos[k * 3 + 1] = Y(m); pos[k * 3 + 2] = Z(lat);
+    const rgb = colorAltura(m); col[k * 3] = rgb[0]; col[k * 3 + 1] = rgb[1]; col[k * 3 + 2] = rgb[2];
+    if (f < F - 1 && c < C - 1) idx.push(k, k + C, k + 1, k + 1, k + C, k + C + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 })));
+  // Mar (color según El Niño)
+  const anchoMar = (r.este - r.oeste) * KX, fondoMar = (r.norte - r.sur) * KZ;
+  const gm = new THREE.PlaneGeometry(anchoMar, fondoMar, 60, 70); gm.rotateX(-Math.PI / 2);
+  mar = new THREE.Mesh(gm, new THREE.MeshStandardMaterial({ color: 0x1f5f8b, transparent: true, opacity: 0.88, roughness: 0.4, metalness: 0.1 }));
+  mar.position.set(X((r.oeste + r.este) / 2), 0.001, Z((r.norte + r.sur) / 2)); scene.add(mar);
+  mar.userData.base = gm.attributes.position.array.slice();
+  // Provincias, zona de la app y celda de NASA POWER
+  const linea = (pts, color, op, dashed) => {
+    const geo = new THREE.BufferGeometry().setFromPoints(pts.map(([lon, lat]) => new THREE.Vector3(X(lon), Y(elev(lat, lon)) + 0.03, Z(lat))));
+    const mat = dashed ? new THREE.LineDashedMaterial({ color, dashSize: 0.25, gapSize: 0.18, transparent: true, opacity: op }) : new THREE.LineBasicMaterial({ color, transparent: true, opacity: op });
+    const l = new THREE.Line(geo, mat); if (dashed) l.computeLineDistances(); scene.add(l); return l;
+  };
+  const densificar = (a, b, n = 40) => Array.from({ length: n + 1 }, (_, k) => [a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+  for (const anillos2 of Object.values(S.datos.geo.provincias)) anillos2.forEach((ring) => linea(ring.flatMap((p, k) => k ? densificar(ring[k - 1], p, 4).slice(1) : [p]), 0xffffff, 0.75));
+  const [o, su, e, n] = S.datos.geo.zona;
+  linea([...densificar([o, n], [e, n]), ...densificar([e, n], [e, su]), ...densificar([e, su], [o, su]), ...densificar([o, su], [o, n])], 0xe5a940, 0.9, true);
+  const cm = S.datos.enso.fuentes.celda;
+  S.celdaPower = linea([...densificar([cm.oeste, cm.norte], [cm.este, cm.norte]), ...densificar([cm.este, cm.norte], [cm.este, cm.sur]), ...densificar([cm.este, cm.sur], [cm.oeste, cm.sur]), ...densificar([cm.oeste, cm.sur], [cm.oeste, cm.norte])], 0xe4572e, 0.95);
+  // Lluvia (partículas) y nubes
+  const N = reducir ? 1500 : 6000, pp = new Float32Array(N * 3), pc = new Float32Array(N * 3);
+  const gl = new THREE.BufferGeometry(); gl.setAttribute("position", new THREE.BufferAttribute(pp, 3)); gl.setAttribute("color", new THREE.BufferAttribute(pc, 3));
+  lluvia = new THREE.Points(gl, new THREE.PointsMaterial({ size: 0.1, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false, sizeAttenuation: true }));
+  lluvia.userData = { N, activas: 0, celdas: [], suelo: new Float32Array(N), vel: new Float32Array(N) };
+  scene.add(lluvia);
+  nubes = new THREE.Group(); scene.add(nubes);
+  // Etiquetas
+  const lugares = [...S.datos.geo.lugares, { nombre: "Cuajone", lat: -17.04, lon: -70.71 }, { nombre: "Volcán Ubinas", lat: -16.355, lon: -70.903 }];
+  lugares.forEach((l) => etiqueta(lugar(l.nombre), l.lat, l.lon, ""));
+  etiqueta(lugar("Océano Pacífico"), -17.75, -71.45, "mar");
+  etiqueta(lugar("Cuenca alta"), -16.7, -70.45, "");
+  ajustarTamano(); addEventListener("resize", ajustarTamano);
+  controles();
+  requestAnimationFrame(cuadro);
+  return true;
+}
+function etiqueta(t, lat, lon, cls) {
+  const el = document.createElement("div"); el.className = "etq " + cls; el.textContent = t; $("etiquetas").append(el);
+  etiquetas.push({ el, v: new THREE.Vector3(X(lon), Y(elev(lat, lon)) + 0.15, Z(lat)) });
+  if (cls !== "mar") { const s = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffffff })); s.position.copy(etiquetas[etiquetas.length - 1].v); s.position.y -= 0.1; scene.add(s); }
+}
+function ajustarTamano() {
+  const cv = $("lienzo"), r = cv.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false); camera.aspect = r.width / Math.max(1, r.height); camera.updateProjectionMatrix();
+}
+function controles() {
+  const cv = $("lienzo"), p = new Map(); let d0 = 0;
+  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); p.set(e.pointerId, [e.clientX, e.clientY]); cam.auto = false; });
+  cv.addEventListener("pointermove", (e) => {
+    if (!p.has(e.pointerId)) return;
+    const [x0, y0] = p.get(e.pointerId); p.set(e.pointerId, [e.clientX, e.clientY]);
+    if (p.size === 1) { cam.th -= (e.clientX - x0) * 0.006; cam.ph = clamp(cam.ph - (e.clientY - y0) * 0.005, 0.25, 1.45); }
+    else if (p.size === 2) { const [a, b] = [...p.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d0) cam.r = clamp(cam.r * d0 / d, 8, 45); d0 = d; }
+  });
+  const fin = (e) => { p.delete(e.pointerId); d0 = 0; };
+  cv.addEventListener("pointerup", fin); cv.addEventListener("pointercancel", fin);
+  cv.addEventListener("wheel", (e) => { e.preventDefault(); cam.r = clamp(cam.r * (1 + Math.sign(e.deltaY) * 0.08), 8, 45); cam.auto = false; }, { passive: false });
+}
+let tPrev = performance.now();
+function cuadro(t) {
+  const dt = Math.min(0.05, (t - tPrev) / 1000); tPrev = t;
+  if (cam.auto) cam.th += dt * 0.05;
+  camera.position.set(cam.tx + cam.r * Math.sin(cam.ph) * Math.sin(cam.th), cam.r * Math.cos(cam.ph), cam.tz + cam.r * Math.sin(cam.ph) * Math.cos(cam.th));
+  camera.lookAt(cam.tx, 0.6, cam.tz);
+  // Olas suaves
+  if (!reducir) { const a = mar.geometry.attributes.position, b = mar.userData.base; for (let k = 0; k < a.count; k++) a.array[k * 3 + 1] = b[k * 3 + 1] + 0.02 * Math.sin(t / 900 + b[k * 3] * 0.7 + b[k * 3 + 2] * 0.5); a.needsUpdate = true; }
+  // Lluvia que cae
+  const u = lluvia.userData, pa = lluvia.geometry.attributes.position;
+  for (let k = 0; k < u.activas; k++) { pa.array[k * 3 + 1] -= u.vel[k] * dt * (reducir ? 0 : 1); if (pa.array[k * 3 + 1] < u.suelo[k]) pa.array[k * 3 + 1] = u.suelo[k] + 2.2 + Math.random() * 0.4; }
+  pa.needsUpdate = true; lluvia.geometry.setDrawRange(0, u.activas);
+  // Anillos de los golpes (crecen y se desvanecen; no destellan)
+  anillos = anillos.filter((a) => { a.vida += dt; const f = a.vida / 0.9; a.m.scale.setScalar(0.2 + 2.2 * f); a.m.material.opacity = 0.8 * (1 - f); if (f >= 1) { scene.remove(a.m); return false; } return true; });
+  renderer.render(scene, camera);
+  // Etiquetas HTML
+  const r = $("lienzo").getBoundingClientRect();
+  etiquetas.forEach(({ el, v }) => { const p = v.clone().project(camera); const vis = p.z < 1 && Math.abs(p.x) < 1.05 && Math.abs(p.y) < 1.05; el.style.display = vis ? "" : "none"; if (vis) { el.style.left = `${(p.x + 1) / 2 * r.width}px`; el.style.top = `${(1 - p.y) / 2 * r.height}px`; } });
+  requestAnimationFrame(cuadro);
+}
+
+/* ---------------- Poner la lluvia de un momento en el 3D ---------------- */
+const COLOR_CLASE = (k) => new THREE.Color(S.datos.geo.colores_clase[k ?? 0]);
+function sembrar(celdas) {   // celdas: [{lat0, lat1, lon0, lon1, f, color}]
+  const u = lluvia.userData, pa = lluvia.geometry.attributes.position.array, pc = lluvia.geometry.attributes.color.array;
+  const total = celdas.reduce((s, c) => s + c.f, 0);
+  u.activas = Math.min(u.N, Math.round(u.N * clamp(total / 30)));
+  let k = 0;
+  nubes.clear();
+  celdas.forEach((c) => {
+    const n = Math.round(u.activas * c.f / (total || 1));
+    for (let j = 0; j < n && k < u.activas; j++, k++) {
+      const lat = c.lat0 + Math.random() * (c.lat1 - c.lat0), lon = c.lon0 + Math.random() * (c.lon1 - c.lon0), suelo = Y(elev(lat, lon));
+      pa[k * 3] = X(lon); pa[k * 3 + 2] = Z(lat); u.suelo[k] = suelo; pa[k * 3 + 1] = suelo + Math.random() * 2.4; u.vel[k] = 2.4 + Math.random() * 1.2;
+      pc[k * 3] = c.color.r; pc[k * 3 + 1] = c.color.g; pc[k * 3 + 2] = c.color.b;
+    }
+    const w = (c.lon1 - c.lon0) * KX, h = (c.lat1 - c.lat0) * KZ;
+    const nube = new THREE.Mesh(new THREE.BoxGeometry(w * 0.96, 0.12, h * 0.96), new THREE.MeshStandardMaterial({ color: 0xcfdbe6, transparent: true, opacity: c.grande ? 0.1 + 0.18 * clamp(c.f / 22) : 0.06 + 0.32 * clamp(c.f), depthWrite: false }));
+    nube.position.set(X((c.lon0 + c.lon1) / 2), Y(elev((c.lat0 + c.lat1) / 2, (c.lon0 + c.lon1) / 2)) + 2.7, Z((c.lat0 + c.lat1) / 2));
+    nubes.add(nube);
+  });
+  u.activas = k; lluvia.userData.activas = k; lluvia.geometry.attributes.color.needsUpdate = true;
+}
+function celdasEpisodio(m) {
+  const [o, , , n] = S.datos.geo.zona, d = 0.1, out = [];
+  (m.geo?.rejilla || []).forEach((fila, fy) => fila.forEach((c, fx) => { if (c.f > 0) out.push({ lat1: n - fy * d, lat0: n - (fy + 1) * d, lon0: o + fx * d, lon1: o + (fx + 1) * d, f: c.f, color: COLOR_CLASE(c.c) }); }));
+  return out;
+}
+function celdasTemporada(m) {
+  const c = S.datos.enso.fuentes.celda, max = Math.max(...pistas().nino.map((x) => x.lluvia));
+  return [{ grande: true, lat0: c.sur, lat1: c.norte, lon0: c.oeste, lon1: c.este, f: 22 * m.lluvia / max, color: new THREE.Color(m.categoria.startsWith("bajo") ? "#e5a940" : m.categoria.startsWith("sobre") ? "#4cc3b9" : "#b9d8e8") }];
+}
+function colorMar(oni) {
+  const neutro = new THREE.Color(0x1f5f8b), calido = new THREE.Color(0xd9542b), frio = new THREE.Color(0x173a6e);
+  return oni >= 0 ? neutro.clone().lerp(calido, clamp(oni / 2.5)) : neutro.clone().lerp(frio, clamp(-oni / 1.8));
+}
+function centroide(m) {
+  if (S.modo === "nino") { const c = S.datos.enso.fuentes.celda; return [(c.sur + c.norte) / 2, (c.oeste + c.este) / 2]; }
+  const cs = celdasEpisodio(m); if (!cs.length) return [-17.1, -70.9];
+  const t = cs.reduce((s, c) => s + c.f, 0);
+  return [cs.reduce((s, c) => s + c.f * (c.lat0 + c.lat1) / 2, 0) / t, cs.reduce((s, c) => s + c.f * (c.lon0 + c.lon1) / 2, 0) / t];
+}
+function anillo(m) {
+  const [lat, lon] = centroide(m);
+  const g = new THREE.RingGeometry(0.4, 0.5, 48); g.rotateX(-Math.PI / 2);
+  const a = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xe5a940, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false }));
+  a.position.set(X(lon), Y(elev(lat, lon)) + 0.08, Z(lat)); scene.add(a); anillos.push({ m: a, vida: 0 });
+}
+
+/* ---------------- Sonido en tiempo real (regla del equipo: web/js/audio.js) ---------------- */
+let ac = null, maestro, ruido, creado = 0;
+function audio() {
+  if (ac) { if (ac.state === "suspended") ac.resume(); return ac; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  ac = new AC(); creado = ac.currentTime;
+  maestro = ac.createGain(); maestro.gain.value = 0.8;
+  const lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.1;
+  maestro.connect(lim); lim.connect(ac.destination);
+  ruido = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate); const c = ruido.getChannelData(0); for (let i = 0; i < c.length; i++) c[i] = Math.random() * 2 - 1;
+  return ac;
+}
+function golpe(t) {
+  const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 440;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.085);
+  o.connect(g); g.connect(maestro); o.start(t); o.stop(t + 0.105);
+}
+function rumor(t, cobertura) {
+  if (!(cobertura > 0)) return;
+  const nivel = 0.03 + 0.22 * Math.min(1, cobertura / 0.4), r = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  r.buffer = ruido; r.loop = true; f.type = "bandpass"; f.frequency.value = 1200; f.Q.value = 0.7;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(nivel, t + 0.15); g.gain.setValueAtTime(nivel, t + 1.3); g.gain.linearRampToValueAtTime(0.0001, t + 1.5);
+  r.connect(f); f.connect(g); g.connect(maestro); r.start(t); r.stop(t + 1.55);
+}
+function quena(t, lluviaNorm, dur) {   // idea inicial: banda andina (pentatónica menor)
+  const grados = [0, 3, 5, 7, 10, 12, 15, 17], semis = grados[Math.round(clamp(lluviaNorm) * (grados.length - 1))], fr = 220 * Math.pow(2, semis / 12);
+  const o = ac.createOscillator(), g = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+  o.type = "sine"; o.frequency.value = fr; lfo.frequency.value = 5.3; lg.gain.value = fr * 0.006; lfo.connect(lg); lg.connect(o.frequency);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.08); g.gain.setValueAtTime(0.12, t + dur - 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(maestro); o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+}
+function bombo(t) {
+  const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.4);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  o.connect(g); g.connect(maestro); o.start(t); o.stop(t + 0.75);
+}
+
+/* ---------------- Reproducir ---------------- */
+const VENTANA = 1.5;
+function lista() { return pistas()[S.modo]; }
+function hueco() { return S.modo === "nino" ? 0.5 : 1.0; }
+function sonarMomento(i, conVibracion = true) {
+  const m = lista()[i], a = audio(); mostrar(i);
+  const t0 = a ? Math.max(a.currentTime + 0.05, creado + 0.5) : 0;   // el limitador ya está estable (hallazgo 2)
+  const n = m.golpes.length, paso = VENTANA / n, max = S.modo === "nino" ? Math.max(...lista().map((x) => x.lluvia)) : 0;
+  if (a) {
+    for (let k = 0; k < n; k++) golpe(t0 + k * paso);
+    rumor(t0, m.cobertura);
+    if (S.modo === "nino" && S.banda) { quena(t0, m.lluvia / max, VENTANA); if (m.fase && m.fase.startsWith("El Niño")) bombo(t0); }
+  }
+  S.golpeT.forEach(clearTimeout); S.golpeT = [];
+  const retardo = a ? (t0 - a.currentTime) * 1000 : 50;
+  for (let k = 0; k < n; k++) S.golpeT.push(setTimeout(() => {
+    $("puntos").children[k]?.classList.add("lleno"); anillo(m);
+    if (S.subt) $("subt").textContent = S.modo === "nino" ? tr(`[golpe ${k + 1} de ${n}] · ${m.etiqueta} · ${m.categoria}`, `[tone ${k + 1} of ${n}] · ${etq(m.etiqueta)} · ${x(m.categoria)}`) : tr(`[golpe ${k + 1} de ${n}] · intensidad ${m.clase}`, `[tone ${k + 1} of ${n}] · ${x(m.clase)} intensity`);
+    if (conVibracion) vibrar(45);
+  }, retardo + k * paso * 1000));
+  S.golpeT.push(setTimeout(() => {
+    if (S.subt) $("subt").textContent = S.modo === "nino" ? tr(`[rumor] ${m.fase} · ${num(m.lluvia, 2)} mm/día`, `[rumble] ${x(m.fase)} · ${num(m.lluvia, 2)} mm/day`) : tr(`[rumor de fondo] ${pct(m.cobertura)} de la zona con lluvia`, `[background rumble] ${pct(m.cobertura)} of the area with rain`);
+  }, retardo + (n - 1) * paso * 1000 + 250));
+  return (retardo / 1000 + VENTANA) * 1000;
+}
+function mostrar(i) {
+  S.i = clamp(i, 0, lista().length - 1); const m = lista()[S.i];
+  $("puntos").innerHTML = m.golpes.map(() => '<span class="punto"></span>').join("");
+  if (S.modo === "nino") {
+    $("cuando").textContent = EN ? m.etiqueta.replace(" (esperado)", " · expected") : m.etiqueta.replace(" (esperado)", " · esperado");
+    $("dato1").innerHTML = `<b>${x(m.fase)}</b> · ONI ${num(m.oni, 2)}`;
+    $("dato2").innerHTML = tr(`Lluvia <b>${num(m.lluvia, 2)} mm/día</b> · ${m.categoria} · ${m.golpes.length} golpes`, `Rain <b>${num(m.lluvia, 2)} mm/day</b> · ${x(m.categoria)} · ${m.golpes.length} tones`);
+    $("donde").textContent = m.esperado ? tr("Lo que espera la historia de NASA para esta temporada, con El Niño muy fuerte.", "What NASA history suggests for this season, with a very strong El Niño. Not an official forecast.") : tr("Celda de NASA POWER en la cuenca alta (borde rojo). El mar se colorea según El Niño.", "NASA POWER cell in the upper basin (red outline). The sea is colored by El Niño.");
+    mar.material.color.copy(colorMar(m.oni)); sembrar(celdasTemporada(m)); S.celdaPower.visible = true;
+  } else {
+    $("cuando").textContent = etq(m.etiqueta);
+    $("dato1").innerHTML = tr(`Intensidad <b>${m.clase}</b> · ${m.golpes.length} golpes`, `Intensity <b>${x(m.clase)}</b> · ${m.golpes.length} tones`);
+    $("dato2").innerHTML = tr(`Área con lluvia <b>${pct(m.cobertura)}</b>`, `Area with rain <b>${pct(m.cobertura)}</b>`);
+    $("donde").textContent = m.geo ? geoTxt(m.geo.descripcion) : "";
+    mar.material.color.copy(colorMar(-0.46)); sembrar(celdasEpisodio(m)); S.celdaPower.visible = false;
+  }
+  dibujarLinea();
+}
+function describir() {
+  const m = lista()[S.i];
+  if (EN) return S.modo === "nino" ? `${etq(m.etiqueta)}. ${x(m.fase)}, ONI ${num(m.oni, 2)}. Rain ${num(m.lluvia, 2)} millimeters per day, ${x(m.categoria)}: ${m.golpes.length} tones.`
+    : `${etq(m.etiqueta)}. ${x(m.clase)} intensity, ${m.golpes.length} tones. Rain over ${pct(m.cobertura)} of the area. ${m.geo ? geoTxt(m.geo.descripcion) : ""}`;
+  return S.modo === "nino" ? `${m.etiqueta}. ${m.fase}, ONI ${num(m.oni, 2)}. Lluvia ${num(m.lluvia, 2)} milímetros por día, ${m.categoria}: ${m.golpes.length} golpes.`
+    : `${m.etiqueta}. Intensidad ${m.clase}, ${m.golpes.length} golpes. Lluvia en ${pct(m.cobertura)} de la zona. ${m.geo ? m.geo.descripcion : ""}`;
+}
+function reproducir() {
+  if (S.tocando) return detener();
+  S.tocando = true; actualizarBotones(); if (S.i >= lista().length - 1) S.i = 0;
+  const paso = () => {
+    if (!S.tocando) return;
+    const dur = sonarMomento(S.i);
+    S.timer = setTimeout(() => {
+      if (!S.tocando) return;
+      if (S.i >= lista().length - 1) { detener(); return; }
+      S.i++; paso();
+    }, dur + hueco() * 1000);
+  };
+  paso();
+}
+function detener() {
+  S.tocando = false; clearTimeout(S.timer); S.golpeT.forEach(clearTimeout); S.golpeT = [];
+  if (S.vibro && puedeVibrar) try { navigator.vibrate(0); } catch (e) { /* nada */ }
+  actualizarBotones(); decir(describir());
+}
+function actualizarBotones() { const t = S.tocando ? tr("❚❚ Pausar", "❚❚ Pause") : tr("▶ Escuchar", "▶ Listen"); $("btnPlay").textContent = t; $("tfPlay").textContent = t; }
+function ponerModo(m) {
+  if (S.tocando) detener();
+  S.modo = m; document.querySelectorAll("[data-modo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.modo === m)));
+  audio();   // crear el audio con el gesto: el limitador se estabiliza antes del primer golpe
+  mostrar(0); decir(EN ? `${m === "nino" ? "El Niño" : m === "ab" ? "A and B" : "The afternoon"} mode. ${describir()}` : `Modo ${m === "nino" ? "El Niño" : m === "ab" ? "A y B" : "la tarde"}. ${describir()}`);
+  if (m === "nino") { cam.tx = X(-70.62); cam.tz = Z(-17.0); } else { cam.tx = 0; cam.tz = 0; }
+}
+
+/* ---------------- Línea de tiempo ---------------- */
+function dibujarLinea() {
+  const cv = $("linea"), r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d;
+  const c = cv.getContext("2d"); c.scale(d, d); const ms = lista(), W = r.width, H = r.height, w = (W - 20) / ms.length;
+  c.clearRect(0, 0, W, H);
+  const val = (m) => S.modo === "nino" ? m.lluvia : m.cobertura, max = Math.max(...ms.map(val));
+  const color = (m) => S.modo !== "nino" ? "#4cc3b9" : ({ "El Niño fuerte": "#e4572e", "El Niño": "#f29b4b", "Neutro": "#8a949c", "La Niña": "#3f7fd0" }[m.fase] || "#a3171a");
+  ms.forEach((m, k) => { const h = (H - 22) * val(m) / max; c.fillStyle = color(m); c.globalAlpha = k === S.i ? 1 : 0.65; c.fillRect(10 + k * w + 1, H - 16 - h, Math.max(1, w - 2), h); });
+  c.globalAlpha = 1; c.strokeStyle = "#fff"; c.lineWidth = 2; c.strokeRect(10 + S.i * w, 3, w, H - 18);
+  c.fillStyle = "#b3c0c9"; c.font = `12px ${getComputedStyle(document.body).fontFamily}`;
+  c.fillText(S.modo === "nino" ? tr("Lluvia de cada temporada (color: fase de El Niño) · 1981-82 → 2026-27", "Rain of each season (color: El Niño phase) · 1981-82 → 2026-27") : tr("Área con lluvia de cada momento", "Area with rain at each moment"), 12, H - 3);
+}
+$("linea").addEventListener("click", (e) => { const r = e.target.getBoundingClientRect(), k = Math.floor((e.clientX - r.left - 10) / ((r.width - 20) / lista().length)); if (S.tocando) detener(); mostrar(k); sonarMomento(S.i); decir(describir()); });
+
+/* ---------------- Touch & Feel (idea inicial: sordoceguera) ---------------- */
+const tf = $("tfZona");
+function abrirTF() { $("tf").dataset.abierto = "true"; audio(); tf.focus(); actualizarTF(); decir("Touch and Feel. " + $("tfH").textContent); }
+function cerrarTF() { $("tf").dataset.abierto = "false"; $("btnTF").focus(); }
+function actualizarTF() { const m = lista()[S.i]; $("tfG").textContent = $("cuando").textContent; $("tfM").textContent = S.modo === "nino" ? `${x(m.fase)} · ${x(m.categoria)}` : tr(`Intensidad ${m.clase} · ${pct(m.cobertura)} del área`, `${x(m.clase)} intensity · ${pct(m.cobertura)} of the area`); }
+let ultTap = 0, tfAbajo = false;
+tf.addEventListener("pointerdown", (e) => {
+  const ahora = Date.now(); if (ahora - ultTap < 320) { reproducir(); ultTap = 0; return; } ultTap = ahora;
+  tfAbajo = true; tf.setPointerCapture(e.pointerId); irTF(e, true);
+});
+tf.addEventListener("pointermove", (e) => { if (tfAbajo) irTF(e); });
+tf.addEventListener("pointerup", () => { tfAbajo = false; decir(describir()); });
+function irTF(e, forzar) {
+  const r = tf.getBoundingClientRect(), k = Math.round(clamp((e.clientX - r.left) / r.width) * (lista().length - 1));
+  if (k === S.i && !forzar) return;
+  if (S.tocando) detener();
+  mostrar(k); actualizarTF();
+  const m = lista()[k], dens = S.modo === "nino" ? m.lluvia / Math.max(...lista().map((x) => x.lluvia)) : clamp(m.cobertura / 0.3);
+  const patron = []; for (let j = 0; j < m.golpes.length; j++) patron.push(45, 90);
+  patron.push(150); const pausa = Math.round(220 - 190 * dens); for (let t = 0; t < 800; t += 25 + pausa) patron.push(25, pausa);
+  vibrar(patron);
+}
+$("btnTF").onclick = abrirTF; $("tfSalir").onclick = cerrarTF; $("tfPlay").onclick = reproducir;
+
+/* ---------------- Controles ---------------- */
+document.querySelectorAll("[data-modo]").forEach((b) => b.onclick = () => ponerModo(b.dataset.modo));
+$("btnPlay").onclick = reproducir;
+$("btnAnt").onclick = () => { if (S.tocando) detener(); mostrar(S.i - 1); sonarMomento(S.i); decir(describir()); };
+$("btnSig").onclick = () => { if (S.tocando) detener(); mostrar(S.i + 1); sonarMomento(S.i); decir(describir()); };
+const alternar = (id, clave, nombre) => { S[clave] = !S[clave]; $(id).setAttribute("aria-pressed", String(S[clave])); decir(`${nombre}: ${S[clave] ? tr("activada", "on") : tr("desactivada", "off")}`); };
+$("btnVibra").onclick = () => alternar("btnVibra", "vibra", tr("Vibración", "Vibration"));
+$("btnBanda").onclick = () => { alternar("btnBanda", "banda", tr("Banda andina", "Andean band")); if (S.banda && S.modo !== "nino") ponerModo("nino"); };
+$("btnSubt").onclick = () => { alternar("btnSubt", "subt", tr("Subtítulos", "Captions")); $("subt").hidden = !S.subt; };
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target.tagName || "").toLowerCase(); if (tag === "input" || tag === "select") return;
+  if (e.key === "Escape" && $("tf").dataset.abierto === "true") { cerrarTF(); return; }
+  if (e.key === " " && tag !== "button") { e.preventDefault(); reproducir(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); $("btnSig").click(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); $("btnAnt").click(); }
+  else if (e.key === "1") ponerModo("tarde"); else if (e.key === "2") ponerModo("ab"); else if (e.key === "3") ponerModo("nino");
+  else if (e.key === "v" || e.key === "V") $("btnVibra").click();
+  else if (e.key === "b" || e.key === "B") $("btnBanda").click();
+  else if (e.key === "t" || e.key === "T") abrirTF();
+  else if (e.key === "d" || e.key === "D") decir(describir());
+});
+addEventListener("resize", dibujarLinea);
+
+/* ---------------- Inicio ---------------- */
+cargar().then(() => {
+  if (!window.THREE || !iniciar3D()) { $("subt").textContent = tr("Este navegador no muestra 3D. Usa el visor de verificación accesible.", "This browser cannot show 3D. Use the accessible verification viewer."); return; }
+  mostrar(0); actualizarBotones();
+}).catch(() => { $("subt").textContent = tr("No se pudieron leer los datos. Abre la página desde GitHub Pages o con un servidor local.", "The data could not be loaded. Open the page from GitHub Pages or a local server."); });
+})();
+</script>
+</body>
+</html>
