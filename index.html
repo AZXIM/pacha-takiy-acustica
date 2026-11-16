@@ -102,6 +102,7 @@ kbd{font-family:inherit;border:1px solid var(--borde);border-bottom-width:3px;bo
       <button id="btnVibra" aria-pressed="true" aria-keyshortcuts="V">Vibración</button>
       <button id="btnBanda" aria-pressed="false" aria-keyshortcuts="B">Banda andina</button>
       <button id="btnSubt" aria-pressed="true">Subtítulos</button>
+      <button id="btnIdioma">Español</button>
     </div>
   </section>
 
@@ -155,11 +156,81 @@ kbd{font-family:inherit;border:1px solid var(--borde);border-bottom-width:3px;bo
 "use strict";
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const num = (v, d = 1) => v == null ? "—" : Number(v).toFixed(d).replace(".", ",");
+const num = (v, d = 1) => v == null ? "—" : (LANG === "es" ? Number(v).toFixed(d).replace(".", ",") : Number(v).toFixed(d));
 const pct = (c) => `${num(c * 100, 1)} %`;
 const reducir = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const puedeVibrar = typeof navigator.vibrate === "function";
 const S = { modo: "tarde", i: 0, tocando: false, vibra: true, banda: false, subt: true, datos: null, dem: null, timer: null, golpeT: [] };
+
+/* ---------------- Language: English by default, Spanish on request ---------------- */
+const LANG = (() => {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q === "es" || q === "en") return q;
+  try { const g = localStorage.getItem("pachaLang"); if (g === "es" || g === "en") return g; } catch (e) { /* no storage */ }
+  return "en";
+})();
+const EN = LANG === "en";
+const tr = (es, en) => EN ? en : es;
+const TX = { "baja": "light", "media": "moderate", "alta": "heavy", "bajo lo normal": "below normal", "normal": "normal",
+  "sobre lo normal": "above normal", "El Niño fuerte": "Strong El Niño", "El Niño": "El Niño", "Neutro": "Neutral",
+  "La Niña": "La Niña", "El Niño muy fuerte (hoy)": "Very strong El Niño (today)" };
+const x = (v) => (EN && v != null && TX[v] != null) ? TX[v] : v;
+const DIR = { norte: "north", sur: "south", este: "east", oeste: "west", noreste: "northeast", noroeste: "northwest", sureste: "southeast", suroeste: "southwest", centro: "center" };
+function geoTxt(t) {
+  if (!t) return "";
+  if (!EN) return t;
+  if (t.startsWith("No llueve")) return "No rain in any cell of the area.";
+  const r = t.match(/Llueve en (\d+) de (\d+) celdas; la lluvia se concentra al (\w+) de la zona(?: \((cuenca alta, hacia Carumas|hacia la costa)\))?\./);
+  if (!r) return t;
+  const ex = r[4] ? (r[4].startsWith("cuenca") ? " (upper basin, toward Carumas)" : " (toward the coast)") : "";
+  return `Rain in ${r[1]} of ${r[2]} cells; it concentrates in the ${DIR[r[3]] || r[3]} of the area${ex}.`;
+}
+const etq = (v) => EN ? String(v).replace(" (esperado)", " (expected)") : v;
+const LUGAR = { "Volcán Ubinas": "Ubinas volcano", "Océano Pacífico": "Pacific Ocean", "Cuenca alta": "Upper basin" };
+const lugar = (n) => EN ? (LUGAR[n] || n) : n;
+function aplicarIdioma() {
+  document.documentElement.lang = LANG;
+  $("btnIdioma").textContent = EN ? "Español" : "English";
+  $("btnIdioma").setAttribute("lang", EN ? "es" : "en");
+  $("btnIdioma").setAttribute("aria-label", EN ? "Ver en español" : "View in English");
+  actualizarBotones();
+  if (!EN) return;
+  document.title = "Pacha Takiy 3D · Hear NASA rain in the Andes";
+  const set = (sel, html) => { const el = document.querySelector(sel); if (el) el.innerHTML = html; };
+  const attr = (sel, a, v) => { const el = document.querySelector(sel); if (el) el.setAttribute(a, v); };
+  document.querySelector('meta[name="description"]').setAttribute("content", "NASA rain over the real relief of Moquegua, Peru, in 3D, with real-time sound, vibration and El Niño.");
+  set(".saltar", "Skip to the controls");
+  attr("#lienzo", "aria-label", "3D relief of Moquegua, Peru, from the Pacific Ocean at Ilo to the upper basin at Carumas and the Ubinas volcano. Rain measured by NASA falls on the cells where it rained. Drag to rotate and use the wheel to zoom.");
+  set("#titulo", "Pacha Takiy 3D<small>NASA rain over the real relief of Moquegua, Peru. It sounds in real time, vibrates and changes with El Niño.</small>");
+  attr(".modos", "aria-label", "What to listen to");
+  set('[data-modo="tarde"]', "The afternoon"); set('[data-modo="ab"]', "A and B"); set('[data-modo="nino"]', "El Niño");
+  set("#btnAnt", "⏮ Previous"); set("#btnSig", "Next ⏭");
+  set("#btnVibra", "Vibration"); set("#btnBanda", "Andean band"); set("#btnSubt", "Captions");
+  set("#subt", "Press Listen.");
+  attr("#linea", "aria-label", "Timeline. Tap to go to a moment.");
+  set("#tQue", "What you are seeing and hearing");
+  const q = document.querySelectorAll("#tQue + .rejilla p");
+  q[0].innerHTML = "<b>The relief is real.</b> It comes from NASA SRTM via AWS Terrain Tiles (~600 m) and is exaggerated 4 times in height. On the left, the Pacific Ocean and Ilo; in the center, the Moquegua valley and Torata; top right, the upper basin (Cuajone, Carumas) and the Ubinas volcano.";
+  q[1].innerHTML = "<b>The afternoon and A/B:</b> rain on 10 Feb 2025 (NASA GPM IMERG, 0.1° cells). Each 440 Hz tone is the intensity (2, 4 or 7 tones) and the background rumble is the area with rain. These are the team's rules, sounding in real time.";
+  q[2].innerHTML = "<b>El Niño:</b> 44 rainy seasons from NASA POWER in the upper basin. The sea warms up (red) following NOAA's ONI index and the rain over the cell grows with the season. The tones give the tercile: 2 below normal, 4 normal, 7 above normal.";
+  set("#tAcc", "For everyone");
+  const a = document.querySelectorAll("#tAcc + .rejilla p");
+  a[0].innerHTML = "<b>Deaf:</b> captions, dots that fill with each tone (no flashes) and rain visible on the 3D map.";
+  a[1].innerHTML = "<b>Blind:</b> everything works with the keyboard (<kbd>Space</kbd>, <kbd>←</kbd> <kbd>→</kbd>, <kbd>1</kbd>–<kbd>3</kbd>, <kbd>D</kbd> describe); the screen reader describes each moment when you pause or change.";
+  a[2].innerHTML = "<b>Deafblind:</b> vibration on every tone and the <b>Touch &amp; Feel</b> mode: slide your finger through time and feel the rain; more pulses in a row = more rain.";
+  set("#tMas", "More");
+  const mas = document.querySelector("#tMas + p");
+  const visor = $("enlaceVisor").getAttribute("href"), fund = $("enlaceFund").getAttribute("href");
+  mas.innerHTML = `<a id="enlaceVisor" href="${visor}">Accessible verification viewer (Spanish)</a> · <a id="enlaceFund" href="${fund}">Mathematical foundation (Spanish)</a> · Data: NASA GPM IMERG (GIBS), NASA POWER (MERRA-2), NASA SRTM, NOAA ONI, ENFEN. Team Ayni Orbital · NASA Space Apps Challenge 2026 · The Earth Information Jukebox. Developed with help from Claude (Anthropic), an SI coding assistant.`;
+  set("#tfSalir", "Exit");
+  set("#tfH", "Slide your finger from left to right to move through time. Each tone vibrates. Pulses close together: a lot of rain. Pulses far apart: little rain. Double tap to listen or pause.");
+}
+$("btnIdioma").onclick = () => {
+  const nuevo = EN ? "es" : "en";
+  try { localStorage.setItem("pachaLang", nuevo); } catch (e) { /* no storage */ }
+  const u = new URL(location.href); u.searchParams.set("lang", nuevo); location.href = u.toString();
+};
+aplicarIdioma();
 
 function decir(t) { const v = $("voz"); v.textContent = ""; setTimeout(() => { v.textContent = t; }, 40); }
 function vibrar(p) { if (S.vibra && puedeVibrar) try { navigator.vibrate(p); S.vibro = true; } catch (e) { /* sin vibración */ } }
@@ -248,9 +319,9 @@ function iniciar3D() {
   nubes = new THREE.Group(); scene.add(nubes);
   // Etiquetas
   const lugares = [...S.datos.geo.lugares, { nombre: "Cuajone", lat: -17.04, lon: -70.71 }, { nombre: "Volcán Ubinas", lat: -16.355, lon: -70.903 }];
-  lugares.forEach((l) => etiqueta(l.nombre, l.lat, l.lon, ""));
-  etiqueta("Océano Pacífico", -17.75, -71.45, "mar");
-  etiqueta("Cuenca alta", -16.7, -70.45, "");
+  lugares.forEach((l) => etiqueta(lugar(l.nombre), l.lat, l.lon, ""));
+  etiqueta(lugar("Océano Pacífico"), -17.75, -71.45, "mar");
+  etiqueta(lugar("Cuenca alta"), -16.7, -70.45, "");
   ajustarTamano(); addEventListener("resize", ajustarTamano);
   controles();
   requestAnimationFrame(cuadro);
@@ -401,11 +472,11 @@ function sonarMomento(i, conVibracion = true) {
   const retardo = a ? (t0 - a.currentTime) * 1000 : 50;
   for (let k = 0; k < n; k++) S.golpeT.push(setTimeout(() => {
     $("puntos").children[k]?.classList.add("lleno"); anillo(m);
-    if (S.subt) $("subt").textContent = S.modo === "nino" ? `[golpe ${k + 1} de ${n}] · ${m.etiqueta} · ${m.categoria}` : `[golpe ${k + 1} de ${n}] · intensidad ${m.clase}`;
+    if (S.subt) $("subt").textContent = S.modo === "nino" ? tr(`[golpe ${k + 1} de ${n}] · ${m.etiqueta} · ${m.categoria}`, `[tone ${k + 1} of ${n}] · ${etq(m.etiqueta)} · ${x(m.categoria)}`) : tr(`[golpe ${k + 1} de ${n}] · intensidad ${m.clase}`, `[tone ${k + 1} of ${n}] · ${x(m.clase)} intensity`);
     if (conVibracion) vibrar(45);
   }, retardo + k * paso * 1000));
   S.golpeT.push(setTimeout(() => {
-    if (S.subt) $("subt").textContent = S.modo === "nino" ? `[rumor] ${m.fase} · ${num(m.lluvia, 2)} mm/día` : `[rumor de fondo] ${pct(m.cobertura)} de la zona con lluvia`;
+    if (S.subt) $("subt").textContent = S.modo === "nino" ? tr(`[rumor] ${m.fase} · ${num(m.lluvia, 2)} mm/día`, `[rumble] ${x(m.fase)} · ${num(m.lluvia, 2)} mm/day`) : tr(`[rumor de fondo] ${pct(m.cobertura)} de la zona con lluvia`, `[background rumble] ${pct(m.cobertura)} of the area with rain`);
   }, retardo + (n - 1) * paso * 1000 + 250));
   return (retardo / 1000 + VENTANA) * 1000;
 }
@@ -413,22 +484,24 @@ function mostrar(i) {
   S.i = clamp(i, 0, lista().length - 1); const m = lista()[S.i];
   $("puntos").innerHTML = m.golpes.map(() => '<span class="punto"></span>').join("");
   if (S.modo === "nino") {
-    $("cuando").textContent = m.etiqueta.replace(" (esperado)", " · esperado");
-    $("dato1").innerHTML = `<b>${m.fase}</b> · ONI ${num(m.oni, 2)}`;
-    $("dato2").innerHTML = `Lluvia <b>${num(m.lluvia, 2)} mm/día</b> · ${m.categoria} · ${m.golpes.length} golpes`;
-    $("donde").textContent = m.esperado ? "Lo que espera la historia de NASA para esta temporada, con El Niño muy fuerte." : "Celda de NASA POWER en la cuenca alta (borde rojo). El mar se colorea según El Niño.";
+    $("cuando").textContent = EN ? m.etiqueta.replace(" (esperado)", " · expected") : m.etiqueta.replace(" (esperado)", " · esperado");
+    $("dato1").innerHTML = `<b>${x(m.fase)}</b> · ONI ${num(m.oni, 2)}`;
+    $("dato2").innerHTML = tr(`Lluvia <b>${num(m.lluvia, 2)} mm/día</b> · ${m.categoria} · ${m.golpes.length} golpes`, `Rain <b>${num(m.lluvia, 2)} mm/day</b> · ${x(m.categoria)} · ${m.golpes.length} tones`);
+    $("donde").textContent = m.esperado ? tr("Lo que espera la historia de NASA para esta temporada, con El Niño muy fuerte.", "What NASA history suggests for this season, with a very strong El Niño. Not an official forecast.") : tr("Celda de NASA POWER en la cuenca alta (borde rojo). El mar se colorea según El Niño.", "NASA POWER cell in the upper basin (red outline). The sea is colored by El Niño.");
     mar.material.color.copy(colorMar(m.oni)); sembrar(celdasTemporada(m)); S.celdaPower.visible = true;
   } else {
-    $("cuando").textContent = m.etiqueta;
-    $("dato1").innerHTML = `Intensidad <b>${m.clase}</b> · ${m.golpes.length} golpes`;
-    $("dato2").innerHTML = `Área con lluvia <b>${pct(m.cobertura)}</b>`;
-    $("donde").textContent = m.geo ? m.geo.descripcion : "";
+    $("cuando").textContent = etq(m.etiqueta);
+    $("dato1").innerHTML = tr(`Intensidad <b>${m.clase}</b> · ${m.golpes.length} golpes`, `Intensity <b>${x(m.clase)}</b> · ${m.golpes.length} tones`);
+    $("dato2").innerHTML = tr(`Área con lluvia <b>${pct(m.cobertura)}</b>`, `Area with rain <b>${pct(m.cobertura)}</b>`);
+    $("donde").textContent = m.geo ? geoTxt(m.geo.descripcion) : "";
     mar.material.color.copy(colorMar(-0.46)); sembrar(celdasEpisodio(m)); S.celdaPower.visible = false;
   }
   dibujarLinea();
 }
 function describir() {
   const m = lista()[S.i];
+  if (EN) return S.modo === "nino" ? `${etq(m.etiqueta)}. ${x(m.fase)}, ONI ${num(m.oni, 2)}. Rain ${num(m.lluvia, 2)} millimeters per day, ${x(m.categoria)}: ${m.golpes.length} tones.`
+    : `${etq(m.etiqueta)}. ${x(m.clase)} intensity, ${m.golpes.length} tones. Rain over ${pct(m.cobertura)} of the area. ${m.geo ? geoTxt(m.geo.descripcion) : ""}`;
   return S.modo === "nino" ? `${m.etiqueta}. ${m.fase}, ONI ${num(m.oni, 2)}. Lluvia ${num(m.lluvia, 2)} milímetros por día, ${m.categoria}: ${m.golpes.length} golpes.`
     : `${m.etiqueta}. Intensidad ${m.clase}, ${m.golpes.length} golpes. Lluvia en ${pct(m.cobertura)} de la zona. ${m.geo ? m.geo.descripcion : ""}`;
 }
@@ -451,12 +524,12 @@ function detener() {
   if (S.vibro && puedeVibrar) try { navigator.vibrate(0); } catch (e) { /* nada */ }
   actualizarBotones(); decir(describir());
 }
-function actualizarBotones() { const t = S.tocando ? "❚❚ Pausar" : "▶ Escuchar"; $("btnPlay").textContent = t; $("tfPlay").textContent = t; }
+function actualizarBotones() { const t = S.tocando ? tr("❚❚ Pausar", "❚❚ Pause") : tr("▶ Escuchar", "▶ Listen"); $("btnPlay").textContent = t; $("tfPlay").textContent = t; }
 function ponerModo(m) {
   if (S.tocando) detener();
   S.modo = m; document.querySelectorAll("[data-modo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.modo === m)));
   audio();   // crear el audio con el gesto: el limitador se estabiliza antes del primer golpe
-  mostrar(0); decir(`Modo ${m === "nino" ? "El Niño" : m === "ab" ? "A y B" : "la tarde"}. ${describir()}`);
+  mostrar(0); decir(EN ? `${m === "nino" ? "El Niño" : m === "ab" ? "A and B" : "The afternoon"} mode. ${describir()}` : `Modo ${m === "nino" ? "El Niño" : m === "ab" ? "A y B" : "la tarde"}. ${describir()}`);
   if (m === "nino") { cam.tx = X(-70.62); cam.tz = Z(-17.0); } else { cam.tx = 0; cam.tz = 0; }
 }
 
@@ -470,7 +543,7 @@ function dibujarLinea() {
   ms.forEach((m, k) => { const h = (H - 22) * val(m) / max; c.fillStyle = color(m); c.globalAlpha = k === S.i ? 1 : 0.65; c.fillRect(10 + k * w + 1, H - 16 - h, Math.max(1, w - 2), h); });
   c.globalAlpha = 1; c.strokeStyle = "#fff"; c.lineWidth = 2; c.strokeRect(10 + S.i * w, 3, w, H - 18);
   c.fillStyle = "#b3c0c9"; c.font = `12px ${getComputedStyle(document.body).fontFamily}`;
-  c.fillText(S.modo === "nino" ? "Lluvia de cada temporada (color: fase de El Niño) · 1981-82 → 2026-27" : "Área con lluvia de cada momento", 12, H - 3);
+  c.fillText(S.modo === "nino" ? tr("Lluvia de cada temporada (color: fase de El Niño) · 1981-82 → 2026-27", "Rain of each season (color: El Niño phase) · 1981-82 → 2026-27") : tr("Área con lluvia de cada momento", "Area with rain at each moment"), 12, H - 3);
 }
 $("linea").addEventListener("click", (e) => { const r = e.target.getBoundingClientRect(), k = Math.floor((e.clientX - r.left - 10) / ((r.width - 20) / lista().length)); if (S.tocando) detener(); mostrar(k); sonarMomento(S.i); decir(describir()); });
 
@@ -478,7 +551,7 @@ $("linea").addEventListener("click", (e) => { const r = e.target.getBoundingClie
 const tf = $("tfZona");
 function abrirTF() { $("tf").dataset.abierto = "true"; audio(); tf.focus(); actualizarTF(); decir("Touch and Feel. " + $("tfH").textContent); }
 function cerrarTF() { $("tf").dataset.abierto = "false"; $("btnTF").focus(); }
-function actualizarTF() { const m = lista()[S.i]; $("tfG").textContent = $("cuando").textContent; $("tfM").textContent = S.modo === "nino" ? `${m.fase} · ${m.categoria}` : `Intensidad ${m.clase} · ${pct(m.cobertura)} del área`; }
+function actualizarTF() { const m = lista()[S.i]; $("tfG").textContent = $("cuando").textContent; $("tfM").textContent = S.modo === "nino" ? `${x(m.fase)} · ${x(m.categoria)}` : tr(`Intensidad ${m.clase} · ${pct(m.cobertura)} del área`, `${x(m.clase)} intensity · ${pct(m.cobertura)} of the area`); }
 let ultTap = 0, tfAbajo = false;
 tf.addEventListener("pointerdown", (e) => {
   const ahora = Date.now(); if (ahora - ultTap < 320) { reproducir(); ultTap = 0; return; } ultTap = ahora;
@@ -503,10 +576,10 @@ document.querySelectorAll("[data-modo]").forEach((b) => b.onclick = () => ponerM
 $("btnPlay").onclick = reproducir;
 $("btnAnt").onclick = () => { if (S.tocando) detener(); mostrar(S.i - 1); sonarMomento(S.i); decir(describir()); };
 $("btnSig").onclick = () => { if (S.tocando) detener(); mostrar(S.i + 1); sonarMomento(S.i); decir(describir()); };
-const alternar = (id, clave, nombre) => { S[clave] = !S[clave]; $(id).setAttribute("aria-pressed", String(S[clave])); decir(`${nombre}: ${S[clave] ? "activada" : "desactivada"}`); };
-$("btnVibra").onclick = () => alternar("btnVibra", "vibra", "Vibración");
-$("btnBanda").onclick = () => { alternar("btnBanda", "banda", "Banda andina"); if (S.banda && S.modo !== "nino") ponerModo("nino"); };
-$("btnSubt").onclick = () => { alternar("btnSubt", "subt", "Subtítulos"); $("subt").hidden = !S.subt; };
+const alternar = (id, clave, nombre) => { S[clave] = !S[clave]; $(id).setAttribute("aria-pressed", String(S[clave])); decir(`${nombre}: ${S[clave] ? tr("activada", "on") : tr("desactivada", "off")}`); };
+$("btnVibra").onclick = () => alternar("btnVibra", "vibra", tr("Vibración", "Vibration"));
+$("btnBanda").onclick = () => { alternar("btnBanda", "banda", tr("Banda andina", "Andean band")); if (S.banda && S.modo !== "nino") ponerModo("nino"); };
+$("btnSubt").onclick = () => { alternar("btnSubt", "subt", tr("Subtítulos", "Captions")); $("subt").hidden = !S.subt; };
 document.addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = (e.target.tagName || "").toLowerCase(); if (tag === "input" || tag === "select") return;
@@ -524,9 +597,9 @@ addEventListener("resize", dibujarLinea);
 
 /* ---------------- Inicio ---------------- */
 cargar().then(() => {
-  if (!window.THREE || !iniciar3D()) { $("subt").textContent = "Este navegador no muestra 3D. Usa el visor de verificación accesible."; return; }
-  mostrar(0);
-}).catch(() => { $("subt").textContent = "No se pudieron leer los datos. Abre la página desde GitHub Pages o con un servidor local."; });
+  if (!window.THREE || !iniciar3D()) { $("subt").textContent = tr("Este navegador no muestra 3D. Usa el visor de verificación accesible.", "This browser cannot show 3D. Use the accessible verification viewer."); return; }
+  mostrar(0); actualizarBotones();
+}).catch(() => { $("subt").textContent = tr("No se pudieron leer los datos. Abre la página desde GitHub Pages o con un servidor local.", "The data could not be loaded. Open the page from GitHub Pages or a local server."); });
 })();
 </script>
 </body>
